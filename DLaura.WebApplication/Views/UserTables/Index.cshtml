@@ -1,0 +1,100 @@
+﻿@model List<DLaura.BusinessLogic.DTOs.TableLocationResponse>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<div class="container">
+    <div class="row justify-content-md-center">
+        <div class="col col-lg-2">
+            <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal"
+                    data-bs-target="#AgregarTableModal">
+                Agregar mesa
+            </button>
+        </div>
+        <div class="col col-lg-2">
+            <button type="button" class="btn btn-danger mt-3" data-bs-toggle="modal"
+                    data-bs-target="#EliminarTableModal">Eliminar mesa
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<div id="container" class="mt-1 ms-4 ms-lg-4">
+    @foreach (var reservation in Model)
+    {
+        <div class="mesita "
+             draggable="true"
+             style="left: @reservation.CoordinateX; top: @reservation.CoordinateY;"
+             data-bs-toggle="tooltip" data-bs-placement="top"
+             data-bs-custom-class="custom-tooltip"
+             data-bs-title="Mesa: #@reservation.TableNumber"
+             data-table="@reservation.TableNumber"
+             data-locatId="@reservation.Id"
+             data-location-x="@reservation.CoordinateX"
+             data-location-y="@reservation.CoordinateY">
+        </div>
+    }
+</div>
+
+@* <--Modal para Eliminar mesa--> *@
+<div class="modal fade" id="EliminarTableModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reservationModalLabel">Elige el número de la mesa a eliminar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="deleteTableForm" asp-controller="UserTables" asp-action="DeleteTable" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="TableNumber" class="form-label"><strong>Número de mesa:</strong></label>
+                        <select class="form-control" id="Id" name="Id" required>
+                            <option value="">Seleccione una mesa</option>
+                            @foreach (var table in Model)
+                            {
+                                <option value="@table.TableNumber">Mesa #@table.TableNumber</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@* <--Modal para agreggar info de mesa--> *@
+<div class="modal fade" id="AgregarTableModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reservationModalLabel">Agregar Información de la Mesa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addTableForm" asp-controller="UserTables" asp-action="AddTable" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="TableNumber" class="form-label"><strong>Número de mesa:</strong></label>
+                        <input type="number" class="form-control" id="TableNumber" name="TableNumber" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="MaxCapacity" class="form-label"><strong>Capacidad Máxima de personas:</strong></label>
+                        <input type="number" class="form-control" id="MaxCapacity" name="MaxCapacity" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-success">Agregar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

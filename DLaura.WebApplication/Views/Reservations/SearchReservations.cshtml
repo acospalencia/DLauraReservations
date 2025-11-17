@@ -1,0 +1,68 @@
+﻿@model List<DLaura.BusinessLogic.DTOs.ReservationResponse>
+
+@{
+	ViewData["Title"] = "Reservaciones";
+}
+
+<div class="container mt-5">
+	<h3 class="mb-4">Seleccionar turno y fecha a reservar.</h3>
+	<form method="post" asp-controller="Reservations" asp-action="SearchReservations">
+
+		<div class="row">
+			<div class="mb-3 col">
+				<label for="ReservationDate" class="form-label">Fecha:</label>
+				<input type="date" class="form-control" id="ReservationDate" name="ReservationDate" required
+					   value="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")"
+					   min="@DateTime.Now.ToString("yyyy-MM-dd")">
+			</div>
+			<div class="col-sm-3 col-xl-6">
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col">
+				<div class="mb-3">
+					<label for="ReservateShift" class="form-label">Turno:</label>
+					<select class="form-select" id="ReservateShift" name="ReservateShift" required>
+						<option value="Mañana">Mañana</option>
+						<option value="Tarde">Tarde</option>
+					</select>
+				</div>
+				<div class="d-grid">
+					<button type="submit" class="btn btn-primary">Buscar</button>
+				</div>
+			</div>
+
+			<div class=" col-sm-3 col-xl-6">
+			</div>
+		</div>
+
+	</form>
+</div>
+
+
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		let dateInput = document.getElementById("ReservationDate");
+
+		// Establece la fecha por defecto al día siguiente
+		let tomorrow = new Date();
+		tomorrow.setDate(tomorrow.getDate() + 1);
+		dateInput.valueAsDate = tomorrow;
+
+		// Evita seleccionar fechas pasadas
+		dateInput.addEventListener("change", function () {
+			let selectedDate = new Date(this.value);
+			let today = new Date();
+			today.setHours(0, 0, 0, 0);
+
+			if (selectedDate < today) {
+				alert("No puedes seleccionar el dia de ahora ni tampoco una fecha anterior.");
+				this.valueAsDate = tomorrow;
+			}
+		});
+	});
+</script>
+
+

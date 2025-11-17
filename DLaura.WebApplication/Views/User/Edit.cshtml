@@ -1,0 +1,94 @@
+﻿@model DLaura.BusinessLogic.DTOs.UpdateUserRequest
+
+@{
+    ViewData["Title"] = "Editar Usuario";
+}
+
+<link rel="stylesheet" href="~/css/auth/register.css" asp-append-version="true">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<div class="register-container">
+    <div class="register-box">
+        <h1 class="register-title">Editar Usuario</h1>
+
+        <form asp-action="Edit" method="post" class="register-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Campo para Nombre -->
+            <div class="form-group">
+                <label class="control-label">Nombre</label>
+                <div class="input-icon">
+                    <input asp-for="FirstName" class="form-control" placeholder="Ingresa el nombre" />
+                    <i class="fas fa-user"></i>
+                </div>
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+
+            <!-- Campo para Apellido -->
+            <div class="form-group">
+                <label class="control-label">Apellido</label>
+                <div class="input-icon">
+                    <input asp-for="LastName" class="form-control" placeholder="Ingresa el apellido" />
+                    <i class="fas fa-user"></i>
+                </div>
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+
+            <!-- Campo para Teléfono -->
+            <div class="form-group">
+                <label class="control-label">Teléfono</label>
+                <div class="input-icon">
+                    <input asp-for="Phone" class="form-control" placeholder="Ingresa el teléfono" />
+                    <i class="fas fa-phone"></i>
+                </div>
+                <span asp-validation-for="Phone" class="text-danger"></span>
+            </div>
+
+            <!-- Campo para Correo -->
+            <div class="form-group">
+                <label class="control-label">Correo electrónico</label>
+                <div class="input-icon">
+                    <input asp-for="Email" class="form-control" placeholder="Ingresa el correo electrónico" />
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <!-- Campo para seleccionar Rol (solo si es Administrador) -->
+            @if (User.IsInRole("Administrador"))
+            {
+                <div class="form-group">
+                    <label class="control-label">Rol</label>
+                    <div class="input-icon">
+                        <select asp-for="RolId" class="form-control"
+                                asp-items="@(ViewData["RolId"] as SelectList ?? new SelectList(Enumerable.Empty<SelectListItem>()))">
+                            <option value="">-- Seleccione un Rol --</option>
+                        </select>
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <span asp-validation-for="RolId" class="text-danger"></span>
+                </div>
+            }
+
+            <!-- Checkbox para Compensación (solo si es Administrador) -->
+            @if (User.IsInRole("Administrador"))
+            {
+                <div class="form-group form-check">
+                    <input asp-for="Compensation" type="checkbox" class="form-check-input" />
+                    <label asp-for="Compensation" class="form-check-label">Compensación</label>
+                    <span asp-validation-for="Compensation" class="text-danger"></span>
+                </div>
+            }
+
+            <div class="form-group">
+                <button type="submit" class="btn-register">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

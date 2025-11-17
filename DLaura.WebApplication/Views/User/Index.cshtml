@@ -1,0 +1,35 @@
+﻿@model IEnumerable<DLaura.BusinessLogic.DTOs.UserResponse>
+
+@{
+    ViewData["Title"] = "Administración de Usuarios";
+}
+
+<h1>Administración de Usuarios</h1>
+<p>
+    <a asp-action="Create" class="btn btn-info">Crear nuevo usuario</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FirstName) 
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Email)
+                    </td>
+                <td>
+                    @Html.ActionLink("Editar", "Edit", new { id = item.Id }, new { @class = "btn btn-success" })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

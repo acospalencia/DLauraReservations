@@ -1,0 +1,201 @@
+﻿@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DLaura.WebApplication</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DLaura.WebApplication.styles.css" asp-append-version="true" />
+
+
+</head>
+<body>
+    <header>
+        @{
+            string? userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        }
+        <nav class="navbar navbar-expand-lg bg-body-tertiary navbar-dark bg-color box-shadow content ">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    Restaurante Doña Laura
+                </a>
+
+
+                @if (User.Identity.IsAuthenticated)
+                {
+                    @switch (userRole)
+                    {
+                        case "Administrador":
+                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                            <div class="collapse navbar-collapse text-white" id="navbarSupportedContent">
+                                <ul class="navbar-nav m-auto mb-2 mb-lg-0">
+                                    <li class="nav-item m-auto px-3">
+                                        <a class="nav-link "  asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+                                    </li>
+                                    <li class="nav-item m-auto px-3">
+                                        <a class="nav-link "  asp-area="" asp-controller="Promotion" asp-action="Index">Promociones</a>
+                                    </li>
+                                    <li class="nav-item m-auto px-3">
+                                        <a class="nav-link " hidden asp-area="" asp-controller="Reservations" asp-action="SearchReservations">Reservaciones</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-light dropdown-toggle mx-2" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Mi Cuenta
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                                    <li><a class="dropdown-item" asp-controller="Home" asp-action="Index">Inicio</a></li>
+                                    <li><a class="dropdown-item" asp-controller="User" asp-action="Index">Administrar Usuarios</a></li>
+                                    <li><a class="dropdown-item" asp-controller="UserTables" asp-action="Index">Administrar Mesas</a></li>
+
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-action="CerrarSesion" asp-controller="User" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger">Cerrar Sesión</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                            break;
+                        case "Usuario":
+                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                            <div class="collapse navbar-collapse text-white" id="navbarSupportedContent">
+                                <ul class="navbar-nav m-auto mb-2 mb-lg-0">
+                                    <li class="nav-item m-auto px-3">
+                                        <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+                                    </li>
+                                    <li class="nav-item m-auto px-3">
+                                        <a class="nav-link " asp-area="" asp-controller="Promotion" asp-action="Index">Promociones</a>
+                                    </li>
+                                    <li class="nav-item m-auto px-3">
+                                        <a class="nav-link "  asp-area="" asp-controller="Reservations" asp-action="SearchReservations">Reservaciones</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-light dropdown-toggle mx-2" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Mi Cuenta
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                                    <li><a class="dropdown-item" asp-controller="Home" asp-action="Index">Inicio</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Reservations" asp-action="MisReservaciones">Mis Reservaciones</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-action="CerrarSesion" asp-controller="User" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger">Cerrar Sesión</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                            break;
+                        case "Recepcionista":
+                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                            <div class="collapse navbar-collapse text-white" id="navbarSupportedContent">
+                                <ul class="navbar-nav m-auto mb-2 mb-lg-0">
+                                    <li class="nav-item m-auto px-3">
+                                        <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+                                    </li>
+                                    <li class="nav-item m-auto px-3">
+                                        <a class="nav-link " asp-area="" asp-controller="Promotion" asp-action="Index">Promociones</a>
+                                    </li>
+                                    <li class="nav-item m-auto px-3">
+                                        <a class="nav-link " asp-area="" asp-controller="Reservations" asp-action="Index">Reservaciones del dia</a>
+                                    </li>
+                                    <li class="nav-item m-auto px-3">
+                                        <a class="nav-link " hidden asp-area="" asp-controller="Reservations" asp-action="SearchReservations">Reservaciones</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-light dropdown-toggle mx-2" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Mi Cuenta
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                                    <li><a class="dropdown-item" asp-controller="Home" asp-action="Index">Inicio</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-action="CerrarSesion" asp-controller="User" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger">Cerrar Sesión</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                            break;
+                    }
+                    
+                }
+                else
+                {
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse text-white" id="navbarSupportedContent">
+                        <ul class="navbar-nav m-auto mb-2 mb-lg-0">
+                            <li class="nav-item m-auto px-3">
+                                <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+                            </li>
+                            <li class="nav-item m-auto px-3">
+                                <a class="nav-link " asp-area="" asp-controller="Promotion" asp-action="Index">Promociones</a>
+                            </li>
+                            <li class="nav-item m-auto px-3">
+                                <a class="nav-link " asp-area="" asp-controller="Reservations" asp-action="SearchReservations">Reservaciones</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Si el usuario NO ha iniciado sesión, mostrar botones de login y registro -->
+                    <a class="btn btn-outline-danger text-white mx-2" asp-controller="User" asp-action="Login">Iniciar Sesión</a>
+                    <a class="btn btn-outline-danger text-white mx-2" asp-controller="User" asp-action="Create">Registrarse</a>
+                }
+            </div>
+        </nav>
+    </header>
+    <div class="container content">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Restaurante Doña Laura</h3>
+                <p>Tu destino de lujo para una experiencia inolvidable.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Contacto</h3>
+                <p>📍 Km. 63 Carretera de San Salvador a Sonsonate, Sonzacate, Sonsonate, El Salvador</p>
+                <p>📞 LLÁMANOS (503) 2429-8769</p>
+                <p>✉️ info@gmail.com</p>
+            </div>
+            <div class="footer-section">
+                <h3>Síguenos</h3>
+                <div class="social-links">
+                    <a href="#" target="_blank"><i class="fab fa-facebook"></i></a>
+                    <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="#" target="_blank"><i class="fab fa-x-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+        <p class="copyright">© 2024 Restaurante Doña Laura. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

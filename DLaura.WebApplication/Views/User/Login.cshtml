@@ -1,0 +1,50 @@
+﻿@model DLaura.BusinessLogic.UseCases.Usuarios.Queries.GetUserAuthenticated.GetUserAuthenticatedQuery
+
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<!-- Enlace al archivo de estilos externo -->
+<link rel="stylesheet" href="~/css/auth/login.css" asp-append-version="true">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<div class="login-container">
+    <div class="login-box">
+        <h1 class="login-title">Iniciar Sesión</h1>
+
+        <form asp-action="Login" method="post" class="login-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Campo para Email con ícono -->
+            <div class="form-group">
+                <label class="control-label">Correo electrónico</label>
+                <div class="input-icon">
+                    <input asp-for="Email" class="form-control" placeholder="Ingresa tu correo electrónico" />
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <!-- Campo para Password con ícono -->
+            <div class="form-group">
+                <label class="control-label">Contraseña</label>
+                <div class="input-icon">
+                    <input asp-for="password" type="password" class="form-control" placeholder="Ingresa tu contraseña" />
+                    <i class="fas fa-lock"></i>
+                </div>
+                <span asp-validation-for="password" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn-login">Iniciar sesión</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

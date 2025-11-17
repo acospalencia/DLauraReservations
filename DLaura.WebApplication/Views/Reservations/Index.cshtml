@@ -1,0 +1,83 @@
+﻿@model List<DLaura.BusinessLogic.DTOs.ReservationResponse>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container mt-3">                                                                                                                                                                                                                                                                                                                                              
+    <div class="row">
+        <div class="col"> <h3>Reservaciones del dia</h3></div>
+        <div class="col text-end">
+            <form id="dateForm" asp-controller="Reservations" asp-action="GetEspecificDay" method="get">
+                <input type="date" id="selectedDate" name="fecha" class="form-control">
+            </form>
+        </div>
+        <div class="col">
+            <form asp-controller="Reservations" asp-action="Index" >
+                <input type="submit" value="📅 Hoy">
+            </form>
+        </div>
+        <div class="col"> <input type="text" name="name" value="" placeholder="🔎Buscar reservación" /> </div>
+    </div>
+</div>
+
+
+
+<table class="table mt-5">
+    <thead>
+        <tr>
+            <th class="text-center">
+                Turno
+            </th>
+            <th class="text-center">
+                Cliente
+            </th>
+            <th class="text-center">
+                Capacidad Personas
+            </th>
+            <th class="text-center">
+                #Mesa
+            </th>
+            <th class="text-center">
+                Recompensa
+            </th>
+           
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="text-center">
+                    @Html.DisplayFor(modelItem => item.ReservateShift)
+                </td>
+                <td class="text-center">
+                    @Html.DisplayFor(modelItem => item.User.FirstName)
+                </td>
+                <td class="text-center">
+                    @Html.DisplayFor(modelItem => item.TableNumberNavigation.MaxCapacity)
+                </td>
+                <td class="text-center">
+                    @Html.DisplayFor(modelItem => item.TableNumberNavigation.TableNumber)
+                </td>
+                <td class="text-center">
+                    @if (item.User.Compensation == true)
+                    {
+                        <div class="badge bg-success">Si</div>
+                    }
+                    else
+                    {
+                        <div class="badge bg-danger">No</div>
+
+                    }
+                </td>
+                
+            </tr>
+        }
+    </tbody>
+</table>
+<script>
+    document.getElementById("selectedDate").addEventListener("change", function () {
+        document.getElementById("dateForm").submit();
+    });
+</script>

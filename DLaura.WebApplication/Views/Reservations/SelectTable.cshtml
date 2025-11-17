@@ -1,0 +1,158 @@
+﻿@using DLaura.BusinessLogic.DTOs
+@model List<DLaura.BusinessLogic.DTOs.TableLocationResponse>
+
+
+@{
+    ViewData["Title"] = "SelectTable";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var reservacionExistentes = ViewBag.Reservations as List<ReservationResponse>;
+    var FechaTurno = ViewBag.DateShift as ReservationByFilterRequest;
+}
+
+
+
+<div id="container" class="mt-5 ms-4">
+
+    @foreach (var reservation in Model)
+    {
+
+        var isReserved = reservacionExistentes.Any(reservaExist => reservaExist.TableNumber == reservation.TableNumber);
+
+        @if (isReserved)
+        {
+            <div class="card2 " style="left: @reservation.CoordinateX; top: @reservation.CoordinateY;"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-bs-custom-class="custom-tooltip"
+            data-bs-title="Mesa actualmente reservada">
+            </div>
+        }
+        else
+        {
+            <div class="card" style="left: @reservation.CoordinateX; top: @reservation.CoordinateY;"
+            data-bs-toggle="tooltip"
+            data-bs-html="true"
+            data-bs-placement="top"
+            data-bs-custom-class="custom-tooltip"
+            data-bs-title="Mesa: #@reservation.TableNumber <br> Capacidad:  @reservation.TableNumberNavigation.MaxCapacity Personas Maximo"
+            data-table="@reservation.TableNumber"
+            data-maxCapacity="@reservation.TableNumberNavigation.MaxCapacity"
+            data-date="@FechaTurno.ReservationDate"
+            data-shift="@FechaTurno.ReservateShift">
+            </div>
+
+        }
+    }
+
+</div>
+@* <--Modal para las reservadas--> *@
+<div class="modal fade" id="ModalReservadal" tabindex="-1" aria-labelledby="ModalReservadalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="reservationModalLabel">Mesa Actualmente Reservada</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@* <--Modal para las NO reservadas--> *@
+<div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <h5 class="modal-title" id="reservationModalLabel">Terminar Reservacion</h5>
+                }
+                else
+                {
+                    <h5 class="modal-title" id="reservationModalLabel"><strong>Inicia sesion para poder terminar la reservacion</strong></h5>
+                }
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="AddReservationForm" asp-controller="Reservations" asp-action="AddReservation" method="post">
+
+                <div class="modal-body">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <p><strong>Mesa a reservar: #</strong> <span id="modalTableNumber"></span></p>
+                        <p><strong>Capacidad maxima de la mesa:</strong> <span id="modalMaxCapacity"> personas</span></p>
+                        <p><strong>Persona que reserva:</strong> <span>@User.FindFirst("FirstName")?.Value @User.FindFirst("LastName")?.Value</span></p>
+                        <p><strong>Fecha a reservar:</strong> <span id="modalDate"></span></p>
+                        <p><strong>Turno a reservar:</strong> <span id="modalShift"></span></p>
+                    }
+                    else
+                    {
+                        <p><strong>Mesa a reservar: #</strong> <span id="modalTableNumber"></span></p>
+                        <p><strong>Capacidad maxima de la mesa:</strong> <span id="modalMaxCapacity"> personas</span></p>
+                        <p><strong>Fecha a reservar:</strong> <span id="modalDate"></span></p>
+                        <p><strong>Turno a reservar:</strong> <span id="modalShift"></span></p>
+                    }
+
+
+                    <!-- Campos ocultos para enviar datos -->
+                    <input type="hidden" id="hiddenTableNumber" name="TableNumber" />
+                    <input type="hidden" id="hiddenMaxCapacity" name="MaxCapacity" />
+                    <input type="hidden" id="hiddenDate" name="ReservationDate" />
+                    <input type="hidden" id="hiddenShift" name="ReservateShift" />
+                    <input type="hidden" id="hiddenUserId" name="UserId" value="@User.FindFirst("Id")?.Value" />
+                </div>
+                <div class="modal-footer">
+                    @if(User.Identity.IsAuthenticated)
+                    {
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Confirmar Reservacion</button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+                    }
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+        $(document).ready(function () {
+        // Detectar cuando el formulario es enviado
+        $('#AddReservationForm').on('submit', function (event) {
+            event.preventDefault();  // Evita el envío normal del formulario
+
+            var form = $(this);
+            var formData = form.serialize(); 
+
+            console.log(formData);  
+
+            $.ajax({
+                url: form.attr('action'),  
+                data: formData,  
+                success: function (response) {
+                    if (response.success)
+
+                        $('#reservationModal').modal('hide');
+
+                        
+                    } else {
+                        alert("Hubo un problema con la reservación.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert("Error en la solicitud: " + error);
+                }
+            });
+        });
+    });
+
+
+</script>
