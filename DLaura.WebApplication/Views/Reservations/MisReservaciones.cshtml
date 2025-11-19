@@ -80,27 +80,64 @@
     </tbody>
 </table>
 
-
+@Html.AntiForgeryToken()
 
 <script>
-        document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
         var reservations = @Html.Raw(Json.Serialize(Model));  
 
         var totalReservations = reservations.length; 
         var maxReservations = 10; 
 
-       
         document.getElementById("currentReservations").textContent = totalReservations;
 
-       
+        if(totalReservations >= 10){
+            var userId = @User.FindFirst("Id")?.Value;
+            
+            console.log("Intentando aplicar compensación para usuario:", userId);
+            
+            // Obtener el token antifalsificación
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            
+            fetch('@Url.Action("AplicarCompensacion", "Reservations")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(userId)
+            })
+            .then(response => {
+                console.log("Respuesta del servidor:", response);
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Datos recibidos:", data);
+                if (data.success) {
+                    document.getElementById("currentReservations").textContent = `${totalReservations} / 10 - ¡Recompensa aplicada!`;
+                    alert("¡Felicidades! Has alcanzado 10 reservaciones y se te ha aplicado una recompensa.");
+                } else {
+                    console.error("Error al aplicar recompensa:", data.message);
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error en la petición:', error);
+                alert("Error al aplicar la compensación: " + error.message);
+            });
+        }
+
         var reservationsLeft = maxReservations - totalReservations;
+        if (reservationsLeft < 0) reservationsLeft = 0;
         document.getElementById("reservationsToGo").textContent = `${reservationsLeft} reservas más`;
 
-        
         var progressPercentage = (totalReservations / maxReservations) * 100;
+        if (progressPercentage > 100) progressPercentage = 100;
         var progressBar = document.getElementById("progressBar");
         progressBar.style.width = progressPercentage + "%";
         progressBar.setAttribute("aria-valuenow", totalReservations); 
     });
-
 </script>

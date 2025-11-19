@@ -4,6 +4,7 @@ using DLaura.BusinessLogic.UseCases.Reservations.Commands.CreateReservation;
 using DLaura.BusinessLogic.UseCases.Reservations.Queries.GetReservation;
 using DLaura.BusinessLogic.UseCases.Reservations.Queries.GetReservationByDate;
 using DLaura.BusinessLogic.UseCases.Reservations.Queries.GetReservationsByDateAndShift;
+using DLaura.BusinessLogic.UseCases.Usuarios.Commands.UpdateCompensation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -165,30 +166,39 @@ namespace DLaura.WebApplication.Controllers
         }
 
 
-        //public IActionResult Create()
-        //{
-        //    ViewData["TableNumber"] = new SelectList(_context.UserTables, "TableNumber", "TableNumber");
-        //    ViewData["UserId"] = new SelectList(_context.Users, "Id", "FirstName");
-        //    return View();
-        //}
+        /// <summary>
+        /// Actualiza la compensación de un usuario cuando alcanza 10 reservaciones.
+        /// </summary>
+        /// <param name="id">ID del usuario a compensar.</param>
+        /// <param name="cancellationToken">Token de cancelación.</param>
+        /// <returns>Resultado JSON indicando si la operación fue exitosa.</returns>
+        [Authorize(Roles = "Usuario")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AplicarCompensacion([FromBody] int id, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Log para debugging
+                Console.WriteLine($"Aplicando compensación para usuario ID: {id}");
+                
+                var command = new UpdateCompensationCommand(id, true);
+                var result = await _mediator.Send(command, cancellationToken);
 
+                if (result)
+                {
+                    Console.WriteLine($"Compensación aplicada exitosamente para usuario ID: {id}");
+                    return Json(new { success = true, message = "Compensación aplicada exitosamente" });
+                }
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Create(CreateReservationRequest request, CancellationToken cancellation)
-        //{
-        //    request.CreatedDate = DateTime.Now;
-
-        //    var send = new CreateReservationCommand(request);
-        //    var command = await _mediator.Send(send, cancellation);
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        return RedirectToAction(nameof(Index));
-        //    }
-
-        //    return View(request);
-        //}
-
+                Console.WriteLine($"No se pudo aplicar la compensación para usuario ID: {id}");
+                return Json(new { success = false, message = "No se pudo aplicar la compensación" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al aplicar compensación: {ex.Message}");
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
+            }
+        }
     }
 }
