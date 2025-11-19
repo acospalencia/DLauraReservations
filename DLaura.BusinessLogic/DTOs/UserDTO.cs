@@ -12,7 +12,7 @@ public class CreateUserRequest
 
     public string Phone { get; set; } = null!;
 
-    public string? Email { get; set; }
+    public string Email { get; set; }
 
     public string UserPassword { get; set; } = null!;
     public bool Compensation { get; set; } = false; // Por defecto será false

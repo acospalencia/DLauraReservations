@@ -1,5 +1,7 @@
 ﻿using DLaura.BusinessLogic.DTOs;
+using DLaura.BusinessLogic.UseCases.UserTables.Commands.DeleteUserTable;
 using DLaura.BusinessLogic.UseCases.Usuarios.Commands.CreateUser;
+using DLaura.BusinessLogic.UseCases.Usuarios.Commands.DeleteUser;
 using DLaura.BusinessLogic.UseCases.Usuarios.Commands.Queries.GetRoles;
 using DLaura.BusinessLogic.UseCases.Usuarios.Commands.UpdateUser;
 using DLaura.BusinessLogic.UseCases.Usuarios.Queries.GetUser;
@@ -251,6 +253,21 @@ namespace DLaura.WebApplication.Controllers
 
                 return View(updateUserRequest);
             }
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteUser(int Id, CancellationToken cancellationToken)
+        {
+            var command = new DeleteUserCommand(Id);
+            await _mediator.Send(command, cancellationToken);
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.Contains("application/json"))
+            {
+                return Json(new { success = true });
+            }
+
+            return RedirectToAction("Index");
         }
     }
 }
