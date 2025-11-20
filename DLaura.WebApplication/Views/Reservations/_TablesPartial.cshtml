@@ -1,0 +1,37 @@
+@using DLaura.BusinessLogic.DTOs
+@using System.Text.Encodings.Web
+@model List<DLaura.BusinessLogic.DTOs.TableLocationResponse>
+
+@{
+    var reservacionExistentes = ViewBag.Reservations as List<ReservationResponse>;
+    var FechaTurno = ViewBag.DateShift as ReservationByFilterRequest;
+}
+
+@foreach (var reservation in Model)
+{
+    var isReserved = reservacionExistentes.Any(reservaExist => reservaExist.TableNumber == reservation.TableNumber);
+
+    @if (isReserved)
+    {
+        <div class="card2" style="left: @reservation.CoordinateX; top: @reservation.CoordinateY;"
+             data-bs-toggle="tooltip"
+             data-bs-placement="top"
+             data-bs-custom-class="custom-tooltip"
+             data-bs-title="Mesa actualmente reservada">
+        </div>
+    }
+    else
+    {
+        <div class="card" style="left: @reservation.CoordinateX; top: @reservation.CoordinateY;"
+             data-bs-toggle="tooltip"
+             data-bs-html="true"
+             data-bs-placement="top"
+             data-bs-custom-class="custom-tooltip"
+             data-bs-title="Mesa: #@reservation.TableNumber <br> Capacidad: @reservation.TableNumberNavigation.MaxCapacity Personas Maximo"
+             data-table="@reservation.TableNumber"
+             data-maxCapacity="@reservation.TableNumberNavigation.MaxCapacity"
+             data-date="@FechaTurno.ReservationDate.ToString("yyyy-MM-dd")"
+             data-shift="@Html.Raw(JavaScriptEncoder.Default.Encode(FechaTurno.ReservateShift))">
+        </div>
+    }
+}

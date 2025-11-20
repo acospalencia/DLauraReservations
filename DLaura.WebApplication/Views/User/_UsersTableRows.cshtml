@@ -1,0 +1,36 @@
+@model IEnumerable<DLaura.BusinessLogic.DTOs.UserResponse>
+
+
+
+
+@foreach (var item in Model)
+{
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.FirstName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Email)
+        </td>
+        <td>
+            @if (item.Compensation == true)
+            {
+                <div class="badge rounded-pill bg-success" style="font-size: 1em;">Recompensado</div>
+            }
+            else
+            {
+                <div class="badge rounded-pill bg-secondary" style="font-size: 1em;">Sin recompensa</div>
+            }
+        </td>
+        <td class="row justify-content-end">
+            @Html.ActionLink("Editar", "Edit", new { id = item.Id }, new { @class = "btn btn-primary col-4" })
+            <button type="button" class="btn btn-danger col-4 ms-2" onclick="deleteUser(@item.Id)">Eliminar</button>
+        </td>
+    </tr>
+}
+
+@section Scripts{
+    <script>
+
+    </script>
+}

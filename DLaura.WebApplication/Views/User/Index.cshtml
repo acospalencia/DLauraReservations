@@ -9,26 +9,41 @@
     <a asp-action="Create" class="btn btn-info">Crear nuevo usuario</a>
 </p>
 
+<!-- Contenedor para la alerta -->
+<div id="alert-container"></div>
+
 <table class="table">
     <thead>
         <tr>
             <th>Nombre</th>
             <th>Email</th>
+            <th>Compensacion</th>
+            <th class="row justify-content-end">Acciones</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="usersTableBody">
         @foreach (var item in Model)
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.FirstName) 
+                    @Html.DisplayFor(modelItem => item.FirstName)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Email)
                 </td>
                 <td>
-                    @Html.ActionLink("Editar", "Edit", new { id = item.Id }, new { @class = "btn btn-success" })
-                    <button type="button" class="btn btn-danger" onclick="deleteUser(@item.Id)">Eliminar</button>
+                    @if (item.Compensation == true)
+                    {
+                        <div class="badge rounded-pill bg-success" style="font-size: 1em;">Recompensado</div>
+                    }
+                    else
+                    {
+                        <div class="badge rounded-pill bg-secondary" style="font-size: 1em;">Sin recompensa</div>
+                    }
+                </td>
+                <td class="row justify-content-end">
+                    @Html.ActionLink("Editar", "Edit", new { id = item.Id }, new { @class = "btn btn-primary col-4" })
+                    <button type="button" class="btn btn-danger col-4 ms-2" onclick="deleteUser(@item.Id)">Eliminar</button>
                 </td>
             </tr>
         }
@@ -37,6 +52,9 @@
 
 @section Scripts {
     <script>
+        // Variable para controlar la actualización automática
+        let autoRefreshInterval;
+
         function deleteUser(id) {
             if (confirm('¿Está seguro de que desea eliminar este usuario?')) {
                 fetch('@Url.Action("DeleteUser", "User")' + '?id=' + id, {
@@ -47,7 +65,8 @@
                 })
                 .then(response => {
                     if (response.ok) {
-                        location.reload();
+                        // En lugar de recargar toda la página, solo actualiza la tabla
+                        refreshUsersTable();
                     } else {
                         alert('Error al eliminar el usuario');
                     }
@@ -58,5 +77,96 @@
                 });
             }
         }
+
+        // Función para mostrar la alerta de actualización
+        function showUpdateAlert() {
+            var alertContainer = document.getElementById('alert-container');
+            
+            if (alertContainer) {
+                // Crear nueva alerta cada vez
+                var alertHTML = `
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        Se actualizó automáticamente la tabla
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                // Limpiar alertas anteriores y agregar la nueva
+                alertContainer.innerHTML = alertHTML;
+                
+                // Ocultar después de 5 segundos
+                setTimeout(function () {
+                    var alertElement = alertContainer.querySelector('.alert');
+                    if (alertElement) {
+                        // Usar Bootstrap para cerrar con animación
+                        var bootstrapAlert = new bootstrap.Alert(alertElement);
+                        bootstrapAlert.close();
+                    }
+                }, 5000);
+            }
+        }
+
+        // Función para actualizar solo la tabla de usuarios
+        function refreshUsersTable() {
+            fetch('@Url.Action("GetUsersPartial", "User")', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al obtener los datos');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Actualiza solo el contenido de tbody
+                document.getElementById('usersTableBody').innerHTML = html;
+                
+                // Mostrar alerta de actualización
+                showUpdateAlert();
+                
+                console.log('Tabla actualizada:', new Date().toLocaleTimeString());
+            })
+            .catch(error => {
+                console.error('Error al actualizar la tabla:', error);
+            });
+        }
+
+        // Iniciar actualización automática cada 30 segundos (30000 ms)
+        function startAutoRefresh(intervalSeconds = 30) {
+            // Limpiar intervalo anterior si existe
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+
+            // Configurar nuevo intervalo
+            autoRefreshInterval = setInterval(() => {
+                refreshUsersTable();
+            }, intervalSeconds * 1000);
+
+            console.log(`Auto-refresh iniciado cada ${intervalSeconds} segundos`);
+        }
+
+        // Detener actualización automática
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                console.log('Auto-refresh detenido');
+            }
+        }
+
+        // Iniciar auto-refresh cuando la página carga
+        document.addEventListener('DOMContentLoaded', function() {
+            // Iniciar actualización automática cada 30 segundos
+            startAutoRefresh(30);
+        });
+
+        // Detener actualización cuando el usuario abandona la página
+        window.addEventListener('beforeunload', function() {
+            stopAutoRefresh();
+        });
     </script>
 }

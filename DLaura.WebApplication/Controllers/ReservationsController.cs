@@ -200,5 +200,47 @@ namespace DLaura.WebApplication.Controllers
                 return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
         }
+
+        /// <summary>
+        /// Devuelve las mesas actualizadas con el estado de reservación para AJAX
+        /// </summary>
+        [Authorize(Roles = "Usuario")]
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> GetTablesPartial(string reservationDate, string reservateShift, CancellationToken cancellationToken)
+        {
+            try
+            {
+                Console.WriteLine($"[GetTablesPartial] Fecha recibida: {reservationDate}, Turno: {reservateShift}");
+                
+                // Crear el request con los parámetros recibidos
+                var request = new ReservationByFilterRequest
+                {
+                    ReservationDate = DateOnly.Parse(reservationDate),
+                    ReservateShift = reservateShift
+                };
+                
+                // Obtener todas las ubicaciones de mesas
+                var tables = await _mediator.Send(new GetTableLocationQuerie());
+                
+                // Obtener las reservaciones para la fecha y turno específicos
+                var query = new GetReservationsByDateAndShiftQuery(request);
+                var reservations = await _mediator.Send(query, cancellationToken);
+                
+                Console.WriteLine($"[GetTablesPartial] Mesas encontradas: {tables.Count}, Reservaciones: {reservations.Count}");
+                
+                // Preparar los datos para la vista parcial
+                ViewBag.Reservations = reservations;
+                ViewBag.DateShift = request;
+                
+                return PartialView("_TablesPartial", tables);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GetTablesPartial] Error: {ex.Message}");
+                Console.WriteLine($"[GetTablesPartial] StackTrace: {ex.StackTrace}");
+                return StatusCode(500, new { error = "Error al obtener las mesas", details = ex.Message });
+            }
+        }
     }
 }

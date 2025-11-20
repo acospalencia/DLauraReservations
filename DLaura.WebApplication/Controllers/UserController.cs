@@ -269,5 +269,15 @@ namespace DLaura.WebApplication.Controllers
 
             return RedirectToAction("Index");
         }
+
+        /// <summary>
+        /// Devuelve solo las filas de la tabla de usuarios (para actualización AJAX)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetUsersPartial()
+        {
+            var users = await _mediator.Send(new GetUsersQuery());
+            return PartialView("_UsersTableRows", users);
+        }
     }
 }

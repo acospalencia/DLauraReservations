@@ -1,6 +1,6 @@
 ﻿@using DLaura.BusinessLogic.DTOs
+@using System.Text.Encodings.Web
 @model List<DLaura.BusinessLogic.DTOs.TableLocationResponse>
-
 
 @{
     ViewData["Title"] = "SelectTable";
@@ -9,43 +9,41 @@
     var FechaTurno = ViewBag.DateShift as ReservationByFilterRequest;
 }
 
-
+<!-- Contenedor para alerta de actualización -->
+<div id="alert-container"></div>
 
 <div id="container" class="mt-5 ms-4">
-
     @foreach (var reservation in Model)
     {
-
         var isReserved = reservacionExistentes.Any(reservaExist => reservaExist.TableNumber == reservation.TableNumber);
 
         @if (isReserved)
         {
-            <div class="card2 " style="left: @reservation.CoordinateX; top: @reservation.CoordinateY;"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            data-bs-custom-class="custom-tooltip"
-            data-bs-title="Mesa actualmente reservada">
+            <div class="card2" style="left: @reservation.CoordinateX; top: @reservation.CoordinateY;"
+                 data-bs-toggle="tooltip"
+                 data-bs-placement="top"
+                 data-bs-custom-class="custom-tooltip"
+                 data-bs-title="Mesa actualmente reservada">
             </div>
         }
         else
         {
             <div class="card" style="left: @reservation.CoordinateX; top: @reservation.CoordinateY;"
-            data-bs-toggle="tooltip"
-            data-bs-html="true"
-            data-bs-placement="top"
-            data-bs-custom-class="custom-tooltip"
-            data-bs-title="Mesa: #@reservation.TableNumber <br> Capacidad:  @reservation.TableNumberNavigation.MaxCapacity Personas Maximo"
-            data-table="@reservation.TableNumber"
-            data-maxCapacity="@reservation.TableNumberNavigation.MaxCapacity"
-            data-date="@FechaTurno.ReservationDate"
-            data-shift="@FechaTurno.ReservateShift">
+                 data-bs-toggle="tooltip"
+                 data-bs-html="true"
+                 data-bs-placement="top"
+                 data-bs-custom-class="custom-tooltip"
+                 data-bs-title="Mesa: #@reservation.TableNumber <br> Capacidad: @reservation.TableNumberNavigation.MaxCapacity Personas Maximo"
+                 data-table="@reservation.TableNumber"
+                 data-maxCapacity="@reservation.TableNumberNavigation.MaxCapacity"
+                 data-date="@FechaTurno.ReservationDate.ToString("yyyy-MM-dd")"
+                 data-shift="@FechaTurno.ReservateShift">
             </div>
-
         }
     }
-
 </div>
-@* <--Modal para las reservadas--> *@
+
+<!-- Modales -->
 <div class="modal fade" id="ModalReservadal" tabindex="-1" aria-labelledby="ModalReservadalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -60,8 +58,6 @@
     </div>
 </div>
 
-
-@* <--Modal para las NO reservadas--> *@
 <div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -74,11 +70,9 @@
                 {
                     <h5 class="modal-title" id="reservationModalLabel"><strong>Inicia sesion para poder terminar la reservacion</strong></h5>
                 }
-
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="AddReservationForm" asp-controller="Reservations" asp-action="AddReservation" method="post">
-
                 <div class="modal-body">
                     @if (User.Identity.IsAuthenticated)
                     {
@@ -96,8 +90,6 @@
                         <p><strong>Turno a reservar:</strong> <span id="modalShift"></span></p>
                     }
 
-
-                    <!-- Campos ocultos para enviar datos -->
                     <input type="hidden" id="hiddenTableNumber" name="TableNumber" />
                     <input type="hidden" id="hiddenMaxCapacity" name="MaxCapacity" />
                     <input type="hidden" id="hiddenDate" name="ReservationDate" />
@@ -105,7 +97,7 @@
                     <input type="hidden" id="hiddenUserId" name="UserId" value="@User.FindFirst("Id")?.Value" />
                 </div>
                 <div class="modal-footer">
-                    @if(User.Identity.IsAuthenticated)
+                    @if (User.Identity.IsAuthenticated)
                     {
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-success">Confirmar Reservacion</button>
@@ -114,7 +106,6 @@
                     {
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
                     }
-
                 </div>
             </form>
         </div>
@@ -124,35 +115,232 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-        $(document).ready(function () {
+    // Guardar fecha y turno de la sesión actual con codificación correcta
+    const currentReservationFilter = {
+        reservationDate: '@Html.Raw(FechaTurno.ReservationDate.ToString("yyyy-MM-dd"))',
+        reservateShift: '@Html.Raw(JavaScriptEncoder.Default.Encode(FechaTurno.ReservateShift))'
+    };
+
+    let autoRefreshInterval;
+
+    // Función para mostrar alerta de actualización
+    function showUpdateAlert() {
+        var alertContainer = document.getElementById('alert-container');
+        
+        if (alertContainer) {
+            var alertHTML = `
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    Mesas actualizadas automáticamente
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            
+            alertContainer.innerHTML = alertHTML;
+            
+            setTimeout(function () {
+                var alertElement = alertContainer.querySelector('.alert');
+                if (alertElement) {
+                    var bootstrapAlert = new bootstrap.Alert(alertElement);
+                    bootstrapAlert.close();
+                }
+            }, 5000);
+        }
+    }
+
+    // Función para limpiar todos los modales y backdrops
+    function cleanupModals() {
+        // Cerrar todos los modales abiertos
+        $('.modal').modal('hide');
+        
+        // Remover todos los backdrops
+        $('.modal-backdrop').remove();
+        
+        // Restaurar el scroll del body
+        $('body').removeClass('modal-open');
+        $('body').css('overflow', '');
+        $('body').css('padding-right', '');
+    }
+
+    // Función para decodificar entidades HTML
+    function decodeHtml(html) {
+        var txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
+    }
+
+    // Función para actualizar las mesas
+    function refreshTables() {
+        const url = '@Url.Action("GetTablesPartial", "Reservations")' + 
+                    '?reservationDate=' + encodeURIComponent(currentReservationFilter.reservationDate) +
+                    '&reservateShift=' + encodeURIComponent(decodeHtml(currentReservationFilter.reservateShift));
+        
+        console.log('Actualizando mesas con URL:', url);
+        console.log('Filtros:', currentReservationFilter);
+        
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'text/html; charset=utf-8'
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error('Error al obtener las mesas');
+            }
+            return response.text();
+        })
+        .then(html => {
+            console.log('HTML recibido, longitud:', html.length);
+            
+            // Limpiar modales antes de actualizar
+            cleanupModals();
+            
+            // Actualizar el contenedor de mesas
+            document.getElementById('container').innerHTML = html;
+            
+            // Destruir tooltips existentes
+            var existingTooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            existingTooltips.forEach(function(el) {
+                var tooltip = bootstrap.Tooltip.getInstance(el);
+                if (tooltip) {
+                    tooltip.dispose();
+                }
+            });
+            
+            // Reinicializar tooltips de Bootstrap
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Reinicializar eventos de click en las mesas
+            initializeTableClickEvents();
+            
+            // Mostrar alerta de actualización
+            showUpdateAlert();
+            
+            console.log('Mesas actualizadas:', new Date().toLocaleTimeString());
+        })
+        .catch(error => {
+            console.error('Error al actualizar las mesas:', error);
+        });
+    }
+
+    // Función para inicializar eventos de click en las mesas
+    function initializeTableClickEvents() {
+        // Mesas disponibles
+        document.querySelectorAll('.card').forEach(function(card) {
+            card.addEventListener('click', function() {
+                var tableNumber = this.getAttribute('data-table');
+                var maxCapacity = this.getAttribute('data-maxCapacity');
+                var date = this.getAttribute('data-date');
+                var shift = decodeHtml(this.getAttribute('data-shift'));
+
+                console.log('Mesa clickeada - Número:', tableNumber, 'Fecha:', date, 'Turno:', shift);
+
+                document.getElementById('modalTableNumber').textContent = tableNumber;
+                document.getElementById('modalMaxCapacity').textContent = maxCapacity;
+                document.getElementById('modalDate').textContent = date;
+                document.getElementById('modalShift').textContent = shift;
+
+                document.getElementById('hiddenTableNumber').value = tableNumber;
+                document.getElementById('hiddenMaxCapacity').value = maxCapacity;
+                document.getElementById('hiddenDate').value = date;
+                document.getElementById('hiddenShift').value = shift;
+
+                // Limpiar modales antes de abrir uno nuevo
+                cleanupModals();
+                
+                var modal = new bootstrap.Modal(document.getElementById('reservationModal'));
+                modal.show();
+            });
+        });
+
+        // Mesas reservadas
+        document.querySelectorAll('.card2').forEach(function(card) {
+            card.addEventListener('click', function() {
+                // Limpiar modales antes de abrir uno nuevo
+                cleanupModals();
+                
+                var modal = new bootstrap.Modal(document.getElementById('ModalReservadal'));
+                modal.show();
+            });
+        });
+    }
+
+    // Iniciar actualización automática
+    function startAutoRefresh(intervalSeconds = 30) {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+        }
+
+        autoRefreshInterval = setInterval(() => {
+            refreshTables();
+        }, intervalSeconds * 1000);
+
+        console.log(`Auto-refresh iniciado cada ${intervalSeconds} segundos`);
+    }
+
+    // Detener actualización automática
+    function stopAutoRefresh() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+            console.log('Auto-refresh detenido');
+        }
+    }
+
+    $(document).ready(function () {
+        // Inicializar eventos de click
+        initializeTableClickEvents();
+
+        // Iniciar auto-refresh
+        startAutoRefresh(30);
+
+        // Manejar el cierre de modales correctamente
+        $('.modal').on('hidden.bs.modal', function () {
+            cleanupModals();
+        });
+
         // Detectar cuando el formulario es enviado
         $('#AddReservationForm').on('submit', function (event) {
-            event.preventDefault();  // Evita el envío normal del formulario
+            event.preventDefault();
 
             var form = $(this);
             var formData = form.serialize(); 
 
-            console.log(formData);  
+            console.log('Enviando formulario:', formData);  
 
             $.ajax({
-                url: form.attr('action'),  
-                data: formData,  
+                url: form.attr('action'),
+                method: 'POST',
+                data: formData,
                 success: function (response) {
-                    if (response.success)
-
-                        $('#reservationModal').modal('hide');
-
-                        
-                    } else {
-                        alert("Hubo un problema con la reservación.");
-                    }
+                    console.log('Respuesta del servidor:', response);
+                    
+                    // Cerrar el modal
+                    $('#reservationModal').modal('hide');
+                    cleanupModals();
+                    
+                    // Actualizar mesas inmediatamente después de reservar
+                    setTimeout(function() {
+                        refreshTables();
+                    }, 500);
+                    
+                    alert("Reservación realizada exitosamente");
                 },
                 error: function (xhr, status, error) {
+                    console.error('Error en la solicitud:', error);
                     alert("Error en la solicitud: " + error);
                 }
             });
         });
     });
 
-
+    // Detener actualización cuando el usuario abandona la página
+    window.addEventListener('beforeunload', function() {
+        stopAutoRefresh();
+        cleanupModals();
+    });
 </script>
